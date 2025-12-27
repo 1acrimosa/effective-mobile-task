@@ -1,29 +1,25 @@
 package main
 
 import (
+	"github.com/go-chi/chi/v5"
 	"log"
 	"net/http"
+
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
+	r := chi.NewRouter()
 
-	// TODO: INIT CONFIG
+	r.Use(middleware.RequestID)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
-	// TODO: INIT LOGGER
-
-	// TODO: INIT STORAGE
-
-	// TODO: init router
-
-	// TODO: run server
-
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
 
-	log.Println("server started on :8085")
-	log.Fatal(http.ListenAndServe(":8085", mux))
+	log.Println("server started on :8080")
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
