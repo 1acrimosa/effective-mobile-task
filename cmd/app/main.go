@@ -1,9 +1,12 @@
 package main
 
 import (
+	"effective-mobile-task/config"
 	"github.com/go-chi/chi/v5"
 	"log"
 	"net/http"
+
+	_ "effective-mobile-task/config"
 
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -20,6 +23,9 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
-	log.Println("server started on :8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	cfg := config.Load()
+
+	log.Println("server started on :" + cfg.AppPort)
+	log.Fatal(http.ListenAndServe(":"+cfg.AppPort, r))
+
 }
