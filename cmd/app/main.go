@@ -1,14 +1,14 @@
 package main
 
 import (
-	"effective-mobile-task/config"
-	"github.com/go-chi/chi/v5"
 	"log"
 	"net/http"
 
-	_ "effective-mobile-task/config"
-
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/1acrimosa/effective-mobile-task/config"
+	"github.com/1acrimosa/effective-mobile-task/internal/repository"
 )
 
 func main() {
@@ -25,7 +25,17 @@ func main() {
 
 	cfg := config.Load()
 
-	log.Println("server started on :" + cfg.AppPort)
-	log.Fatal(http.ListenAndServe(":"+cfg.AppPort, r))
+	db, err := repository.NewPostgresPool(
+		cfg.DBHost,
+		cfg.DBPort,
+		cfg.DBUser,
+		cfg.DBPassword,
+		cfg.DBName,
+	)
 
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
 }
