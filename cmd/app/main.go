@@ -1,41 +1,26 @@
 package main
 
 import (
-	"github.com/1acrimosa/effective-mobile-task/internal/config"
+	"github.com/1acrimosa/effective-mobile-task/internal/db"
 	"log"
 	"net/http"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-
-	"github.com/1acrimosa/effective-mobile-task/internal/repository"
 )
 
 func main() {
-	r := chi.NewRouter()
+	dsn := "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"
 
-	r.Use(middleware.RequestID)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-	})
-
-	cfg := config.Load()
-
-	db, err := repository.NewPostgresPool(
-		cfg.DBHost,
-		cfg.DBPort,
-		cfg.DBUser,
-		cfg.DBPassword,
-		cfg.DBName,
-	)
-
+	_, err := db.NewPostgres(dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer db.Close()
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
+
+	log.Println("Server started on :8080")
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }
