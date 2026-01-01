@@ -1,4 +1,4 @@
-module github.com/1acrimosa/effective-mobile-task
+module effective-mobile-task
 
 go 1.24.0
 

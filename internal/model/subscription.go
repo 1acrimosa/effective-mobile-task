@@ -1,16 +1,12 @@
 package model
 
-import (
-	"time"
-
-	"github.com/google/uuid"
-)
+import "time"
 
 type Subscription struct {
-	ID          uuid.UUID  `json:"id"`
+	ID          string     `json:"id"`
 	ServiceName string     `json:"service_name"`
 	Price       int        `json:"price"`
-	UserID      uuid.UUID  `json:"user_id"`
+	UserID      string     `json:"user_id"`
 	StartDate   time.Time  `json:"start_date"`
 	EndDate     *time.Time `json:"end_date,omitempty"`
 }

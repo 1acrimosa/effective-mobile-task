@@ -1,34 +1,34 @@
 package handler
 
 import (
+	"effective-mobile-task/internal/service"
 	"encoding/json"
 	"net/http"
-
-	"github.com/1acrimosa/effective-mobile-task/internal/model"
-	"github.com/1acrimosa/effective-mobile-task/internal/service"
 )
 
+type SubscriptionService interface {
+	GetAll() (interface{}, error)
+}
+
 type SubscriptionHandler struct {
-	service *service.SubscriptionService
+	service SubscriptionService
 }
 
 func NewSubscriptionHandler(service *service.SubscriptionService) *SubscriptionHandler {
 	return &SubscriptionHandler{service: service}
 }
 
-func (h *SubscriptionHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var sub model.Subscription
-
-	if err := json.NewDecoder(r.Body).Decode(&sub); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+func (h *SubscriptionHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	subs, err := h.service.GetAll()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err := h.service.Create(r.Context(), &sub); err != nil {
-		http.Error(w, "failed to create subscription", http.StatusInternalServerError)
-		return
-	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(subs)
+}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(sub)
+func (h *SubscriptionHandler) Create(writer http.ResponseWriter, request *http.Request) {
+
 }
