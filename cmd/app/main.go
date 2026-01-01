@@ -1,27 +1,41 @@
 package main
 
 import (
-	"github.com/1acrimosa/effective-mobile-task/internal/db"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
-	dsn := "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"
-
-	_, err := db.NewPostgres(dsn)
-	if err != nil {
-		log.Fatal(err)
+	port := os.Getenv("APP_PORT")
+	if port == "" {
+		port = "8080"
 	}
 
-	mux := http.NewServeMux()
+	r := chi.NewRouter()
 
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	r.Use(middleware.RequestID)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
 
-	log.Println("Server started on :8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	r.Route("/subscriptions", func(r chi.Router) {
+		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusCreated)
+			w.Write([]byte("subscription created"))
+		})
+	})
 
+	log.Println("server started on :" + port)
+	err := http.ListenAndServe(":"+port, r)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
