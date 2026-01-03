@@ -1,46 +1,34 @@
 package repository
 
 import (
-	"context"
-	"database/sql"
 	"effective-mobile-task/internal/model"
+	"gorm.io/gorm"
 )
 
-type SubscriptionRepository struct {
-	db *sql.DB
+type ItemRepository struct {
+	DB *gorm.DB
 }
 
-func NewSubscriptionRepository(db *sql.DB) *SubscriptionRepository {
-	return &SubscriptionRepository{db: db}
+func (r *ItemRepository) FindAll() ([]model.Item, error) {
+	var items []model.Item
+	r.DB.Find(&items)
+	return items, nil
 }
 
-func (r *SubscriptionRepository) GetAll() ([]model.Subscription, error) {
-	rows, err := r.db.QueryContext(
-		context.Background(),
-		`SELECT id, service_name, price, user_id, start_date, end_date FROM subscriptions`,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+func (r *ItemRepository) FindById(id uint) (model.Item, error) {
+	var item model.Item
+	r.DB.First(&item, id)
+	return item, nil
+}
 
-	var subs []model.Subscription
+func (r *ItemRepository) Create(item *model.Item) error {
+	return r.DB.Create(item).Error
+}
 
-	for rows.Next() {
-		var s model.Subscription
-		err := rows.Scan(
-			&s.ID,
-			&s.ServiceName,
-			&s.Price,
-			&s.UserID,
-			&s.StartDate,
-			&s.EndDate,
-		)
-		if err != nil {
-			return nil, err
-		}
-		subs = append(subs, s)
-	}
+func (r *ItemRepository) Update(item *model.Item) error {
+	return r.DB.Save(item).Error
+}
 
-	return subs, nil
+func (r *ItemRepository) Delete(id uint) error {
+	return r.DB.Delete(&model.Item{}, id).Error
 }

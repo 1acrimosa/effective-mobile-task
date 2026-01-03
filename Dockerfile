@@ -1,4 +1,18 @@
-FROM ubuntu:latest
-LABEL authors="dastanamangeldi"
+FROM golang:1.23-alpine AS builder
 
-ENTRYPOINT ["top", "-b"]
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN CGO_ENABLED=1 GOOS=linux go build -o main .
+
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates sqlite
+WORKDIR /root/
+
+COPY --from=builder /app/main .
+COPY --from=builder /app/items.db .
+
+EXPOSE 8080
+CMD ["./main"]

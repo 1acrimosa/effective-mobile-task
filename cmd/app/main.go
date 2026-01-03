@@ -1,35 +1,42 @@
 package main
 
 import (
-	"log"
-	"net/http"
-
 	"effective-mobile-task/internal/db"
-	"effective-mobile-task/internal/handler"
+	handlers "effective-mobile-task/internal/handler"
 	"effective-mobile-task/internal/repository"
-	"effective-mobile-task/internal/service"
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v5"
+	"net/http"
 )
 
 func main() {
-	dbConn, err := db.NewPostgres()
-	if err != nil {
-		log.Fatal(err)
+	r := gin.Default()
+	dbInstance := db.InitDB()
+	repo := &repository.ItemRepository{DB: dbInstance}
+	validate := validator.New()
+	handler := &handlers.ItemHandler{Repo: repo, Validate: validate}
+
+	api := r.Group("/api")
+	{
+		api.GET("/items", handler.GetItems)
+		api.GET("/items/:id", handler.GetItem)
+		api.POST("/items", handler.CreateItem)
+		api.PUT("/items/:id", handler.UpdateItem)
+		api.DELETE("/items/:id", handler.DeleteItem)
 	}
 
-	repo := repository.NewSubscriptionRepository(dbConn)
-	service := service.NewSubscriptionService(repo)
-	handler := handler.NewSubscriptionHandler(service)
-
-	r := chi.NewRouter()
-
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("ok"))
+	r.POST("/login", func(c *gin.Context) {
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"user_id": 1,
+		})
+		tokenString, _ := token.SignedString([]byte("supersecretkey"))
+		c.JSON(200, gin.H{"token": tokenString})
 	})
 
-	r.Get("/subscriptions", handler.GetAll)
-	r.Post("/subscriptions", handler.Create)
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "OK"})
+	})
 
-	log.Println("server started on :8080")
-	http.ListenAndServe(":8080", r)
+	r.Run(":8080")
 }

@@ -1,17 +1,26 @@
-version: "3.9"
+version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15
-    container_name: postgres
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./items.db:/root/items.db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: subscriptions
+      - GIN_MODE=release
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: items
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
 
 volumes:
-  pgdata:
+  postgres_data:
