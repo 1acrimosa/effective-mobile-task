@@ -2,11 +2,11 @@
 
 REST API для выполнения CRUD операций с подписками. Реализован на **Go + Gin + GORM + Postgres** с JWT авторизацией.
 
-## 🚀 Быстрый старт
+## Быстрый старт
 
 ```bash
 # 1. Клонировать репозиторий
-git clone <your-repo-url>
+git clone https://github.com/1acrimosa/effective-mobile-task
 cd effective-mobile-task
 
 # 2. Установить зависимости
